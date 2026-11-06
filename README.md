@@ -186,15 +186,12 @@ Ne charger que des fichiers joblib de confiance.
 
 ## Publication GitHub
 
-Le dossier n'est pas encore un dépôt Git et aucun dépôt distant n'a été créé.
-Après installation de Git et GitHub CLI et connexion au compte souhaité :
+Le dépôt privé est disponible sur https://github.com/balsem2/FraudFlow.
+Pour récupérer le projet avec un compte autorisé :
 
 ```powershell
-git init -b main
-git add .
-git commit -m "Initialize FraudFlow local ML baseline"
-gh auth login
-gh repo create FraudFlow --private --source=. --remote=origin --push
+git clone https://github.com/balsem2/FraudFlow.git
+cd FraudFlow
 ```
 
 Les données, modèles et secrets sont exclus du versionnement. La CI vérifie
