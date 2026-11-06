@@ -1,0 +1,11 @@
+{
+  "step": 180,
+  "customer": "C1093826151",
+  "zipcodeOri": "28007",
+  "merchant": "M348934600",
+  "zipMerchant": "28007",
+  "amount": 125.5,
+  "age": "3",
+  "gender": "F",
+  "category": "es_transportation"
+}
