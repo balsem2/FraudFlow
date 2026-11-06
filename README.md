@@ -186,8 +186,8 @@ Ne charger que des fichiers joblib de confiance.
 
 ## Publication GitHub
 
-Le dépôt privé est disponible sur https://github.com/balsem2/FraudFlow.
-Pour récupérer le projet avec un compte autorisé :
+Le dépôt public est disponible sur https://github.com/balsem2/FraudFlow.
+Pour récupérer le projet :
 
 ```powershell
 git clone https://github.com/balsem2/FraudFlow.git
