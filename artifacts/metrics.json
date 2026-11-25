@@ -1,0 +1,81 @@
+{
+  "features": [
+    "step",
+    "amount",
+    "customer",
+    "age",
+    "gender",
+    "zipcodeOri",
+    "merchant",
+    "zipMerchant",
+    "category"
+  ],
+  "train_rows": 332592,
+  "test_rows": 133231,
+  "validation_rows": 128820,
+  "validation_start_step": 108,
+  "test_start_step": 144,
+  "fraud_rate": 0.012108105199254007,
+  "threshold": 0.34040260314941406,
+  "threshold_selection": "validation_max_f1",
+  "evaluation_note": "Exploratory: test period was inspected in previous experiments.",
+  "validation": {
+    "accuracy": 0.996693060083838,
+    "balanced_accuracy": 0.9070108468100696,
+    "roc_auc": 0.9985125870099965,
+    "always_normal_accuracy": 0.9888216115510013,
+    "precision": 0.8800599700149925,
+    "recall": 0.8152777777777778,
+    "f1": 0.8464311463590483,
+    "average_precision": 0.9186568205056442,
+    "confusion_matrix_labels_0_1": [
+      [
+        127220,
+        160
+      ],
+      [
+        266,
+        1174
+      ]
+    ]
+  },
+  "test_at_threshold_0_5": {
+    "accuracy": 0.996547350091195,
+    "balanced_accuracy": 0.8691257580394547,
+    "roc_auc": 0.9987265058354178,
+    "always_normal_accuracy": 0.9891917046333061,
+    "precision": 0.926829268292683,
+    "recall": 0.7388888888888889,
+    "f1": 0.8222565687789799,
+    "average_precision": 0.9269881800124983,
+    "confusion_matrix_labels_0_1": [
+      [
+        131707,
+        84
+      ],
+      [
+        376,
+        1064
+      ]
+    ]
+  },
+  "accuracy": 0.9967500056293205,
+  "balanced_accuracy": 0.8929247481702932,
+  "roc_auc": 0.9987265058354178,
+  "always_normal_accuracy": 0.9891917046333061,
+  "precision": 0.8999205718824463,
+  "recall": 0.7868055555555555,
+  "f1": 0.8395702111893294,
+  "average_precision": 0.9269881800124983,
+  "confusion_matrix_labels_0_1": [
+    [
+      131665,
+      126
+    ],
+    [
+      307,
+      1133
+    ]
+  ],
+  "test_fraud_rate": 0.010808295366693938
+}

@@ -1,0 +1,70 @@
+{
+  "scenarios": 5000,
+  "alerted": 51,
+  "not_investigated": 4949,
+  "dataset_sha256": "4b0fc859d29a44a27fc16d23eed45582354aac28ce19852e3f393005a56e82e7",
+  "agent_version": "investigation-v3",
+  "llm_mode": "mock",
+  "alert_coverage": 0.0102,
+  "model_version": "d62b64ccb62a",
+  "threshold": 0.34040260314941406,
+  "note": "Injected synthetic security scenarios only. Other hypotheses are unlabelled and excluded; not real causal accuracy.",
+  "evaluated_causes": [
+    "unknown_device",
+    "unknown_ip",
+    "geographic_anomaly",
+    "account_takeover"
+  ],
+  "micro_f1": 1.0,
+  "exact_match": 1.0,
+  "per_cause": {
+    "unknown_device": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 8.0
+    },
+    "unknown_ip": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 1.0
+    },
+    "geographic_anomaly": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 0.0
+    },
+    "account_takeover": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 1.0
+    },
+    "micro avg": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 10.0
+    },
+    "macro avg": {
+      "precision": 0.75,
+      "recall": 0.75,
+      "f1-score": 0.75,
+      "support": 10.0
+    },
+    "weighted avg": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 10.0
+    },
+    "samples avg": {
+      "precision": 0.1568627450980392,
+      "recall": 0.1568627450980392,
+      "f1-score": 0.1568627450980392,
+      "support": 10.0
+    }
+  }
+}

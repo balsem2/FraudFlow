@@ -127,19 +127,19 @@ exacte, le seuil le plus élevé est retenu. Le modèle n'est pas réentraîné 
 ce choix afin de préserver l'échelle des scores utilisée pour choisir le seuil.
 `--threshold 0.5` permet toujours un seuil fixe explicite.
 
-Seuil sélectionné : **0,456131**. F1 validation : **0,8267**.
+Seuil sélectionné : **0,340403**. F1 validation : **0,8464**.
 Les champs de métriques à la racine de `artifacts/metrics.json` concernent le test ;
 `validation` et `test_at_threshold_0_5` contiennent les résultats complémentaires.
 
-| Test, même modèle | Seuil 0,5 | Seuil validé 0,456131 |
+| Test, même modèle | Seuil 0,5 | Seuil validé 0,340403 |
 | --- | --- | --- |
-| Précision | 93,25 % | 91,82 % |
-| Rappel | 71,04 % | 73,26 % |
-| F1 | 0,8065 | 0,8150 |
-| Fraudes détectées / manquées | 1 023 / 417 | 1 055 / 385 |
-| Fausses alertes | 74 | 94 |
+| Précision | 92,68 % | 89,99 % |
+| Rappel | 73,89 % | 78,68 % |
+| F1 | 0,8223 | 0,8396 |
+| Fraudes détectées / manquées | 1 064 / 376 | 1 133 / 307 |
+| Fausses alertes | 84 | 126 |
 
-Average precision : 0,9128 pour les deux seuils (elle dépend des scores, pas du
+Average precision : 0,9270 pour les deux seuils (elle dépend des scores, pas du
 seuil choisi). Les anciennes versions ont appris sur plus de données ; comparer
 leurs résultats au modèle actuel ne mesure donc pas uniquement l'effet du seuil.
 Le test a déjà été consulté lors des expériences précédentes : ces résultats
@@ -207,8 +207,12 @@ git clone https://github.com/balsem2/FraudFlow.git
 cd FraudFlow
 ```
 
-Les données, modèles et secrets sont exclus du versionnement. La CI vérifie
-compilation, imports et contrats du modèle, sans évaluer BankSim ni déployer AWS.
+Le CSV BankSim, les artefacts de modèle et les métriques publiés sont accompagnés
+de leur attribution et soumis aux conditions CC BY-NC-SA 4.0 ; voir
+`data/README.md`. Le JSONL synthétique d'investigation est fourni compressé.
+Les historiques SQLite, secrets et autres fichiers locaux restent exclus du
+versionnement. La CI vérifie compilation, imports et contrats du modèle, sans
+évaluer BankSim ni déployer AWS.
 `requirements-lock.txt` conserve les versions validées localement ;
 `requirements.txt` décrit les plages autorisées pour les futures mises à jour.
 
