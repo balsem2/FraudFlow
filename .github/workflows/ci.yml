@@ -16,3 +16,13 @@ jobs:
       - run: python -m unittest discover -s tests -v
       - run: python -m fraudflow.train --help
       - run: python -m fraudflow.predict --help
+      - run: python -m fraudflow.producer --help
+      - run: python -m fraudflow.synthetic_investigation --help
+      - run: python -m fraudflow.evaluate_investigation --help
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose config --quiet
+      - run: docker build -t fraudflow-ci .
+      - run: docker run --rm fraudflow-ci python -m fraudflow.producer --help

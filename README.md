@@ -20,6 +20,19 @@ confirmer Kafka uniquement si l'encadrement l'impose.
 
 ## Dashboard local
 
+Une **investigation après alerte XGBoost (500 arbres)** est maintenant disponible :
+indicateurs historiques, causes probables, importances globales et explication
+mock locale, avec adaptateur Bedrock optionnel. Voir le
+[guide d'investigation et migration AWS](docs/investigation.md) pour générer le
+dataset synthétique multilabel, lancer l'évaluation et utiliser le replay.
+L'investigation ne modifie jamais le score, le seuil ou la décision du détecteur.
+
+Le **producteur indépendant avec reprise persistante** et les fichiers Docker
+sont décrits dans [le guide producteur et Docker](docs/producer-docker.md).
+Le producteur fonctionne sans navigateur. Docker Compose prévoit un dashboard
+et un producteur optionnel partageant un volume SQLite ; sa construction doit
+encore être vérifiée sur un poste équipé de Docker.
+
 Installer les dépendances verrouillées puis lancer depuis la racine :
 
 ```powershell

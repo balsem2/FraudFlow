@@ -1,0 +1,2 @@
+# Optional: local mock mode never imports boto3 or requires AWS credentials.
+boto3>=1.35,<2

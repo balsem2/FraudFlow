@@ -39,7 +39,7 @@ def pipeline():
             ("numeric", "passthrough", NUMERIC),
         ])),
         ("model", XGBClassifier(
-            n_estimators=200, max_depth=4, learning_rate=0.08,
+            n_estimators=500, max_depth=4, learning_rate=0.08,
             tree_method="hist", eval_metric="logloss", random_state=42,
             n_jobs=2,
         )),

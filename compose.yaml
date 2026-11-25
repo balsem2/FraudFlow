@@ -1,0 +1,58 @@
+name: fraudflow
+x-app: &app
+  build: .
+  image: fraudflow-local:latest
+  init: true
+  environment: &environment
+    FRAUDFLOW_MODEL_PATH: /model/model.joblib
+    FRAUDFLOW_DB_PATH: /state/dashboard.sqlite3
+    FRAUDFLOW_DATA_PATH: /data/banksim.csv
+    FRAUDFLOW_SYNTHETIC_PATH: /data/investigation_synthetic.jsonl
+    FRAUDFLOW_EXTERNAL_PRODUCER: "1"
+    FRAUDFLOW_LLM_MODE: mock
+  volumes:
+    - type: bind
+      source: ./artifacts/model.joblib
+      target: /model/model.joblib
+      read_only: true
+      bind:
+        create_host_path: false
+    - type: bind
+      source: ./data
+      target: /data
+      read_only: true
+      bind:
+        create_host_path: false
+    - state:/state
+services:
+  dashboard:
+    <<: *app
+    ports:
+      - "127.0.0.1:${FRAUDFLOW_PORT:-8501}:8501"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8501/_stcore/health', timeout=5)"]
+      interval: 15s
+      timeout: 6s
+      start_period: 30s
+      retries: 3
+  producer:
+    <<: *app
+    profiles: [simulation]
+    command: ["python", "-m", "fraudflow.producer", "--run-id", "banksim-docker-v1", "--batch-size", "25", "--interval", "2"]
+    stop_grace_period: 30s
+    volumes:
+      - type: bind
+        source: ./artifacts/model.joblib
+        target: /model/model.joblib
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./data
+        target: /data
+        read_only: true
+        bind:
+          create_host_path: false
+      - state:/state
+volumes:
+  state:

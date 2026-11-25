@@ -34,6 +34,9 @@ class DashboardTests(unittest.TestCase):
                 self.assertFalse(app.exception)
                 self.assertEqual(len(LocalHistory(db_path).recent()), 1)
                 self.assertTrue(LocalHistory(db_path).recent()[0]['alert'])
+                investigation = LocalHistory(db_path).recent()[0]['investigation']
+                self.assertEqual(investigation['context_source'], 'observed_or_missing')
+                self.assertNotIn('192.0.2.', str(investigation))
                 app.checkbox(key='alerts_only').check().run()
                 self.assertEqual(len(app.dataframe[0].value), 1)
                 app.text_input(key='customer').set_value(' ')

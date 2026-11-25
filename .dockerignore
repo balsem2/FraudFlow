@@ -1,0 +1,8 @@
+**
+!Dockerfile
+!requirements-lock.txt
+!app.py
+!fraudflow/
+!fraudflow/*.py
+!.streamlit/
+!.streamlit/config.toml
