@@ -1,0 +1,15 @@
+aws_region                 = "eu-north-1"
+project_name               = "fraudflow"
+bedrock_region             = "eu-north-1"
+bedrock_model_id            = "amazon.nova-lite-v1:0"
+bedrock_model_arn           = ""
+inference_image_tag         = "v1"
+dashboard_image_tag         = "v1"
+sagemaker_endpoint_name     = "fraudflow-xgb"
+sagemaker_instance_type     = "ml.m5.large"
+enable_sagemaker_endpoint   = false
+enable_kinesis_processing   = false
+enable_bedrock_investigation = false
+enable_dashboard_service    = false
+dashboard_allowed_cidr      = "127.0.0.1/32"
+vpc_cidr                    = "10.40.0.0/16"

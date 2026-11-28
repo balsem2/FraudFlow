@@ -160,29 +160,39 @@ Pas de prompt contenant des commentaires libres d'utilisateurs, pas d'outil LLM
 permettant de bloquer un compte ou d'exécuter du code. Ne jamais charger un artefact
 joblib non fiable. Les datasets et artefacts sont exclus de Git/Docker build.
 
-## Migration prévue AWS (non déployée)
+## Intégration AWS (code local, non déployé)
 
-1. **Kinesis** : producteur d'événements avec ID stable, timestamp et schema_version ;
-   conserver uniquement les données nécessaires, sans labels d'évaluation.
-2. **Lambda de détection** : validation du schéma, déduplication, appel du pipeline
-   **SageMaker** (prétraitement + XGB 500), score/seuil/version persistés d'abord.
-3. **DynamoDB** : prédictions et index client/temps, historiques accessibles uniquement
-   avant le timestamp de la transaction. Table d'investigation séparée ou champs
-   versionnés, statut pending/completed/degraded et TTL adapté.
-4. **Lambda d'investigation**, déclenchée uniquement pour les alertes via une file
-   ou un stream : contexte temporel, indicateurs, explication **Bedrock** et sauvegarde.
-   Déduplication par transaction_id + model_version + agent_version ; DLQ, retries
-   bornés, limitation de concurrence et cache pour éviter les appels payants répétés.
-5. **Streamlit sur ECS/Fargate** : affichage DynamoDB, rôles minimaux, auth et HTTPS ;
-   suppression de SQLite partagé, des IP brutes et des credentials persistants.
-6. **GitHub Actions** : tests anti-fuite, mocks Bedrock, tests UI, build/scans ECR,
-   versionnement du modèle et du prompt ; déploiement Terraform après validation.
-   OIDC si autorisé ; les restrictions Academy/LabRole doivent être vérifiées.
-7. **CloudWatch** : latences de détection/investigation, erreurs, couverture des
-   enquêtes, coût/token Bedrock, dérive et alertes de budget. Pas de payload sensible
-   dans les logs. SageMaker et ECS n'ont pas besoin de dépendre de la disponibilité
-   de Bedrock pour conserver la décision de détection.
+Le producteur, les deux handlers Lambda, les adaptateurs DynamoDB/SageMaker,
+le chemin Bedrock et les ressources IAM/CloudWatch/ECS/Kinesis/SQS/DynamoDB/
+SageMaker sont implémentés dans le dépôt. Terraform empaquette les handlers,
+charge le modèle préparé dans S3 et fournit des options de désactivation pour les
+services facturables. Voir [le guide Terraform](../infra/terraform/README.md)
+pour la séquence de construction et les validations restantes.
+
+Ce code n'a pas encore été exécuté dans AWS. Les permissions Academy/LabRole,
+les quotas, la région et l'accès Bedrock doivent être confirmés. Le dashboard
+ECS est une démo HTTP sans authentification/TLS ; sa règle réseau doit être
+restreinte à une adresse publique `/32`. Aucun `terraform apply`, push ECR ou
+appel Bedrock réel n'a été effectué.
 
 Le budget Academy et l'accès Bedrock doivent être confirmés avant tout déploiement.
 
 Resultats du contexte lie v3 : `reports/investigation_linked_v3.md`.
+
+## Verification du vrai LLM
+
+Le SDK optionnel s'installe avec `uv pip install --python .venv/Scripts/python.exe -r requirements-aws.txt`.
+Configurer les credentials temporaires AWS Academy hors du depot (profil AWS local,
+ou environnement local, avec le session token). Ne jamais les coller dans le chat.
+Configurer AWS_REGION et FRAUDFLOW_BEDROCK_MODEL_ID avec un modele accessible.
+
+```powershell
+.\.venv\Scripts\python.exe -m fraudflow.check_bedrock
+# Un appel reel, potentiellement facture, sur la transaction signalee 66 :
+.\.venv\Scripts\python.exe -m fraudflow.check_bedrock --invoke --index 66
+```
+
+Le premier controle verifie seulement la presence de configuration, sans appel LLM.
+Le second ne reussit que si backend=bedrock et status=completed. Un mock_fallback
+est un ECHEC de validation du vrai LLM. Ensuite, lancer le dashboard depuis le meme
+terminal avec FRAUDFLOW_LLM_MODE=bedrock. Compose reste explicitement en mode mock.

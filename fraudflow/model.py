@@ -5,9 +5,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 from xgboost import XGBClassifier
 
-CATEGORICAL = ["customer", "age", "gender", "zipcodeOri", "merchant", "zipMerchant", "category"]
-NUMERIC = ["step", "amount"]
-FEATURES = [*NUMERIC, *CATEGORICAL]
+from fraudflow.contract import CATEGORICAL, FEATURES, NUMERIC
 
 
 def features(frame):

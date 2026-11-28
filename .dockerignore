@@ -1,6 +1,10 @@
 **
 !Dockerfile
+!Dockerfile.aws
+!Dockerfile.inference
 !requirements-lock.txt
+!requirements-aws.txt
+!requirements-inference.txt
 !app.py
 !fraudflow/
 !fraudflow/*.py

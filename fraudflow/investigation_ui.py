@@ -5,6 +5,12 @@ import streamlit as st
 def render_investigation(record):
     investigation = record.get('investigation')
     if not investigation:
+        if record.get('investigation_status') == 'pending':
+            st.info('Investigation en attente de traitement.')
+            return
+        if record.get('investigation_status') == 'processing':
+            st.info('Investigation en cours.')
+            return
         st.caption('Investigation non déclenchée ou indisponible pour cette ancienne analyse.')
         return
     st.subheader('Investigation après alerte')

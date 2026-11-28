@@ -8,27 +8,41 @@ from uuid import uuid4
 import pandas as pd
 import streamlit as st
 
+from fraudflow.aws_adapters import DynamoHistory, SageMakerScorer
 from fraudflow.dashboard_service import LocalHistory, LocalScorer
 from fraudflow.replay import load_transactions, replay_batch
 from fraudflow.investigation_ui import render_investigation
 from fraudflow.synthetic_investigation import read_event
 
 ROOT = Path(__file__).resolve().parent
+backend = os.getenv('FRAUDFLOW_BACKEND', 'local')
 st.set_page_config(page_title='FraudFlow | Transactions', page_icon='◈', layout='wide')
 
 
 @st.cache_resource
-def load_scorer(path, modified, llm_mode, bedrock_model):
+def load_scorer(path, modified, llm_mode, bedrock_model, backend, endpoint):
+    if backend == 'aws':
+        return SageMakerScorer(endpoint_name=endpoint)
     return LocalScorer(path)
 
 
+@st.cache_resource
+def load_history(backend, db_path):
+    if backend == 'aws':
+        return DynamoHistory()
+    return LocalHistory(db_path)
+
+
 st.title('FraudFlow')
-st.caption('Détection de transactions suspectes · Démonstration locale')
+st.caption('Détection de transactions suspectes · ' + ('AWS' if backend == 'aws' else 'Démonstration locale'))
 model_path = Path(os.environ.get('FRAUDFLOW_MODEL_PATH', ROOT / 'artifacts/model.joblib'))
 try:
-    scorer = load_scorer(str(model_path), model_path.stat().st_mtime_ns,
-                         os.getenv('FRAUDFLOW_LLM_MODE', 'mock'), os.getenv('FRAUDFLOW_BEDROCK_MODEL_ID', ''))
-    history = LocalHistory(os.environ.get('FRAUDFLOW_DB_PATH', ROOT / 'artifacts/dashboard.sqlite3'))
+    model_modified = model_path.stat().st_mtime_ns if backend == 'local' else None
+    scorer = load_scorer(str(model_path), model_modified,
+                         os.getenv('FRAUDFLOW_LLM_MODE', 'mock'),
+                         os.getenv('FRAUDFLOW_BEDROCK_MODEL_ID', ''),
+                         backend, os.getenv('FRAUDFLOW_SAGEMAKER_ENDPOINT', ''))
+    history = load_history(backend, os.environ.get('FRAUDFLOW_DB_PATH', ROOT / 'artifacts/dashboard.sqlite3'))
 except (OSError, ValueError, KeyError, sqlite3.Error) as error:
     st.error(f'Impossible de charger le modèle ou l’historique : {error}')
     st.info('Entraîner le modèle avec python -m fraudflow.train --data data/banksim.csv.')
@@ -36,17 +50,27 @@ except (OSError, ValueError, KeyError, sqlite3.Error) as error:
 
 with st.sidebar:
     st.subheader('Centre de contrôle')
-    st.write('Mode : local')
-    st.metric('Seuil d’alerte', f'{scorer.threshold:.4f}')
+    st.write('Mode : AWS' if backend == 'aws' else 'Mode : local')
+    if scorer.threshold is not None:
+        st.metric('Seuil d’alerte', f'{scorer.threshold:.4f}')
+    else:
+        st.caption('Le seuil est renvoyé avec chaque score SageMaker.')
     st.caption(f'Modèle : {scorer.version}')
     st.info('Une alerte indique une transaction à examiner, pas une fraude confirmée.')
-    st.caption('AWS : intégration à venir. Historique conservé sur cet ordinateur.')
+    if backend == 'aws':
+        st.caption('Scoring SageMaker · Historique DynamoDB · Investigation Bedrock asynchrone.')
+    else:
+        st.caption('AWS : intégration à venir. Historique conservé sur cet ordinateur.')
 
 form_tab, history_tab = st.tabs(['Analyser une transaction', 'Historique et statistiques'])
 with form_tab:
     st.subheader('Nouvelle transaction')
     st.write('Renseignez les informations BankSim pour calculer un score de risque.')
-    linked = st.checkbox('Choisir une transaction BankSim avec son historique lie', key='synthetic_context')
+    if backend == 'aws':
+        linked = False
+        st.caption('Saisie libre ; le score est calcule par SageMaker et l’historique est lu dans DynamoDB.')
+    else:
+        linked = st.checkbox('Choisir une transaction BankSim avec son historique lie', key='synthetic_context')
     if linked:
         st.caption('Historique BankSim ; appareils, IP et horaires simules. Transaction non modifiable dans ce mode.')
         event_index = st.number_input('Numero du scenario (a partir de 0)', min_value=0, value=0, step=1, key='linked_index')
@@ -108,7 +132,9 @@ with form_tab:
 
 @st.fragment(run_every=2)
 def live_history():
-    if os.environ.get('FRAUDFLOW_EXTERNAL_PRODUCER') == '1':
+    if backend == 'aws':
+        st.info('Mode AWS : le producteur Kinesis se lance depuis le terminal avec python -m fraudflow.aws_producer.')
+    elif os.environ.get('FRAUDFLOW_EXTERNAL_PRODUCER') == '1':
         st.info('Producteur indépendant : les nouvelles transactions apparaissent automatiquement. Le démarrage et l’arrêt se font dans le terminal.')
     else:
         st.subheader('Simulation BankSim')

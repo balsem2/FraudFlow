@@ -8,15 +8,24 @@ Machine Learning et MLOps.
 Première baseline exécutée localement le 5 novembre 2026 : analyse BankSim,
 entraînement XGBoost, évaluation chronologique et prédiction JSON fonctionnent.
 Le modèle local est dans `artifacts/model.joblib` (non versionné).
-Le dashboard Streamlit local est disponible ; les services AWS restent à construire. Les documents du brief
-restent à analyser ; l'architecture ci-dessous suit le résumé fourni.
+Le dashboard Streamlit local est disponible. Les handlers AWS, adaptateurs,
+producteur Kinesis et configuration Terraform sont écrits, mais restent à valider
+et à déployer dans un compte autorisé. Aucun `terraform apply` ni ressource AWS
+n'a été exécuté depuis ce dépôt.
 
 ## Architecture cible
 
-Python / BankSim → Kinesis → Lambda → SageMaker / XGBoost → DynamoDB
-→ Streamlit sur ECS Fargate. Terraform, GitHub Actions et CloudWatch assureront
-le déploiement et la supervision. Kinesis est retenu selon le résumé fourni ;
-confirmer Kafka uniquement si l'encadrement l'impose.
+BankSim → producteur Kinesis → Lambda de détection → endpoint SageMaker
+(prétraitement + XGBoost) → DynamoDB → dashboard Streamlit sur ECS/Fargate.
+Les alertes passent par SQS FIFO vers une Lambda d'investigation Bedrock et une
+DLQ. Les ressources et rôles sont décrits dans `infra/terraform`.
+
+Le guide [Terraform AWS](infra/terraform/README.md) décrit la validation locale,
+la livraison des images à ECR, le dépôt du modèle dans S3 et l'ordre prudent
+d'activation. SageMaker, le consommateur Bedrock et le service ECS sont opt-in ;
+les permissions Academy, l'accès Bedrock et les coûts doivent être vérifiés avant
+toute application. L'accès ECS actuel est une démo HTTP restreinte par CIDR,
+pas un déploiement de production.
 
 ## Dashboard local
 
@@ -30,8 +39,13 @@ L'investigation ne modifie jamais le score, le seuil ou la décision du détecte
 Le **producteur indépendant avec reprise persistante** et les fichiers Docker
 sont décrits dans [le guide producteur et Docker](docs/producer-docker.md).
 Le producteur fonctionne sans navigateur. Docker Compose prévoit un dashboard
-et un producteur optionnel partageant un volume SQLite ; sa construction doit
-encore être vérifiée sur un poste équipé de Docker.
+et un producteur optionnel partageant un volume SQLite. Le profil `inference`
+ajoute un service local distinct pour tester le contrat SageMaker ; il n'est pas
+encore appelé par le dashboard.
+
+Une image d'inférence compatible SageMaker peut être construite et testée
+localement avec Docker ; voir le [guide d'inférence](docs/sagemaker-inference.md).
+Elle ne déploie aucune ressource AWS.
 
 Installer les dépendances verrouillées puis lancer depuis la racine :
 
@@ -53,11 +67,12 @@ Il est commun aux sessions de cette application locale. Les variables
 Le modèle est rechargé quand le fichier change ; chaque prédiction conserve son
 seuil et l'empreinte du modèle. Ne fournir que des modèles joblib de confiance.
 
-`fraudflow/dashboard_service.py` sépare le calcul du score et le stockage de
-l'interface. Pour AWS, remplacer ces adaptateurs par l'intégration du flux
-Kinesis/Lambda/SageMaker et la lecture DynamoDB, puis conteneuriser Streamlit
-sur ECS Fargate. SQLite n'est pas le stockage cible sur Fargate. Aucune ressource
-AWS n'est déployée et l'application locale n'inclut pas d'authentification.
+`fraudflow/dashboard_service.py` conserve les adaptateurs locaux ; lorsque
+`FRAUDFLOW_BACKEND=aws`, le dashboard utilise SageMaker et DynamoDB via
+`fraudflow/aws_adapters.py`. L'image `Dockerfile.aws` inclut les dépendances AWS,
+alors que l'image Docker locale garde son mode SQLite. SQLite n'est pas le
+stockage du service Fargate. Aucune ressource AWS n'est déployée et l'application
+n'inclut pas d'authentification.
 
 Les tests d'interface utilisent [Streamlit AppTest](https://docs.streamlit.io/develop/api-reference/app-testing/st.testing.v1.apptest)
 avec un modèle de test et une base temporaire. Ils vérifient soumission,
@@ -189,13 +204,16 @@ une probabilité calibrée garantie ; une alerte indique un cas à examiner.
 L'exemple JSON est fictif et ne garantit aucun score particulier.
 Ne charger que des fichiers joblib de confiance.
 
-## Étapes suivantes
+## État AWS / étapes restantes
 
-1. Analyser les documents du brief et confirmer les exigences.
-2. Définir le coût des fraudes manquées et des fausses alertes pour les prochains choix sur validation.
-3. Connecter le rejeu BankSim local existant au futur producteur Kinesis.
-4. Implémenter Kinesis, Lambda, SageMaker et DynamoDB avec Terraform.
-5. Déployer Streamlit sur ECS Fargate ; ajouter OIDC GitHub/AWS et CloudWatch.
+1. Lancer les validations locales du guide Terraform et examiner les diagnostics.
+2. Confirmer les permissions du compte Academy, l'accès au modèle Bedrock et les quotas.
+3. Créer les ressources seulement après examen du plan et du coût ; le déploiement
+   ECS HTTP est limité à une adresse CIDR configurée et n'a ni TLS ni authentification.
+4. Construire/publier les images dans ECR et activer les services opt-in dans l'ordre
+   indiqué dans le guide Terraform.
+5. Ajouter plus tard un déploiement CI/CD (OIDC si autorisé), authentification HTTPS,
+   alarmes notifiées et gestion distante/chiffrée de l'état Terraform.
 
 ## Publication GitHub
 

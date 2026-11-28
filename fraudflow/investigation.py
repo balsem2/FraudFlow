@@ -148,7 +148,8 @@ def configured_llm():
         return MockLLM()
     if mode != 'bedrock':
         raise ValueError('FRAUDFLOW_LLM_MODE doit être mock ou bedrock.')
-    return BedrockLLM(os.getenv('FRAUDFLOW_BEDROCK_MODEL_ID'), os.getenv('AWS_REGION'))
+    return BedrockLLM(os.getenv('FRAUDFLOW_BEDROCK_MODEL_ID'),
+                      os.getenv('AWS_REGION') or os.getenv('AWS_DEFAULT_REGION'))
 
 
 class FraudInvestigationAgent:

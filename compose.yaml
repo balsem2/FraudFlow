@@ -54,5 +54,26 @@ services:
         bind:
           create_host_path: false
       - state:/state
+  inference:
+    profiles: [inference]
+    build:
+      context: .
+      dockerfile: Dockerfile.inference
+    image: fraudflow-inference:local
+    ports:
+      - "127.0.0.1:${FRAUDFLOW_INFERENCE_PORT:-8082}:8080"
+    volumes:
+      - type: bind
+        source: ./artifacts/model.joblib
+        target: /opt/ml/model/model.joblib
+        read_only: true
+        bind:
+          create_host_path: false
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/ping', timeout=5)"]
+      interval: 15s
+      timeout: 6s
+      start_period: 30s
+      retries: 3
 volumes:
   state:
